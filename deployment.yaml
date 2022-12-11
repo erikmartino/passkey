@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: passkey
+  name: passkey
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: passkey
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: passkey
+    spec:
+      containers:
+      - image: xylifyx/passkey
+        name: passkey
+        resources: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: passkey
+  name: passkey
+spec:
+  ports:
+  - name: 8080-8080
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: passkey
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    kubernetes.io/ingress.class: public
+  labels:
+    app: passkey
+  name: passkey
+spec:
+  rules:
+  - host: passkey.byo.one
+    http:
+      paths:
+      - backend:
+          service:
+            name: passkey
+            port:
+              number: 8080
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - passkey.byo.one
+    secretName: passkey.byo.one-tls
